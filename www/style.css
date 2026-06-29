@@ -1,0 +1,159 @@
+body {
+  font-family: "Microsoft JhengHei", Arial, sans-serif;
+  background: #edf4ef;
+  margin: 0;
+  padding: 16px;
+  font-size: 22px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+}
+
+h1 {
+  text-align: center;
+  font-size: 36px;
+  color: #2b5d42;
+}
+
+h2, h3 {
+  color: #2b5d42;
+}
+
+.today {
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+.summary {
+  background: #2b5d42;
+  color: white;
+  padding: 22px;
+  margin-bottom: 20px;
+  border-radius: 18px;
+  font-size: 26px;
+  line-height: 1.8;
+}
+
+.note {
+  font-size: 18px;
+  color: #ffeb99;
+}
+
+.menu {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+button {
+  width: 100%;
+  padding: 18px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 16px;
+  background: #2b5d42;
+  color: white;
+  font-size: 26px;
+  font-weight: bold;
+}
+
+.back {
+  background: #777;
+}
+
+.danger, .delete-btn {
+  background: #b23b3b;
+}
+
+.small-btn {
+  width: auto;
+  padding: 8px 12px;
+  font-size: 18px;
+}
+
+input, select {
+  width: 100%;
+  padding: 16px;
+  margin: 10px 0;
+  font-size: 24px;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  font-size: 19px;
+  background: white;
+}
+
+th {
+  background: #2b5d42;
+  color: white;
+  padding: 12px;
+}
+
+td {
+  border: 1px solid #ccc;
+  padding: 12px;
+  text-align: center;
+}
+
+.worker-card {
+  margin-bottom: 15px;
+  border: 2px solid #2b5d42;
+  border-radius: 14px;
+  padding: 12px;
+  background: #f8fff9;
+}
+
+.worker-card summary {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2b5d42;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.legend-item {
+  font-size: 20px;
+  margin: 8px 0;
+}
+
+canvas {
+  display: block;
+  margin: 10px auto;
+  max-width: 100%;
+}
+
+@media (max-width: 700px) {
+  body {
+    padding: 10px;
+    font-size: 20px;
+  }
+
+  h1 {
+    font-size: 30px;
+  }
+
+  button {
+    font-size: 24px;
+  }
+
+  table {
+    font-size: 15px;
+  }
+}
