@@ -1,121 +1,451 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>媽媽農業記帳 Pro</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#2b5d42">
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YUN Account</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,"Noto Sans TC",sans-serif;
+  background:#f6f6f6;
+  color:#222;
+}
+.container{
+  max-width:520px;
+  margin:auto;
+  padding:20px;
+}
+h1{
+  margin-bottom:6px;
+}
+.month-row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:16px;
+}
+.month-row button{
+  width:auto;
+  padding:8px 12px;
+  margin:0;
+}
+.month{
+  color:#555;
+  font-weight:bold;
+}
+.box,.card{
+  background:white;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,.06);
+}
+.pie{
+  width:180px;
+  height:180px;
+  border-radius:50%;
+  margin:12px auto;
+  background:#ddd;
+}
+.legend{
+  margin-top:10px;
+}
+.legend-item{
+  display:flex;
+  justify-content:space-between;
+  font-size:14px;
+  padding:5px 0;
+}
+.card-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+}
+.name{
+  font-size:18px;
+  font-weight:bold;
+}
+.balance{
+  font-size:22px;
+  font-weight:bold;
+  margin-top:8px;
+}
+.small{
+  color:#777;
+  font-size:13px;
+}
+.progress{
+  height:10px;
+  background:#eee;
+  border-radius:99px;
+  overflow:hidden;
+  margin-top:10px;
+}
+.bar{
+  height:100%;
+}
+.details{
+  display:none;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid #eee;
+}
+label{
+  font-size:14px;
+  font-weight:bold;
+}
+input{
+  width:100%;
+  padding:10px;
+  margin:6px 0 10px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  box-sizing:border-box;
+  font-size:15px;
+}
+button{
+  width:100%;
+  border:0;
+  border-radius:12px;
+  padding:12px;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:8px;
+}
+.add-btn{
+  background:#222;
+  color:white;
+}
+.export-btn{
+  background:#111;
+  color:white;
+}
+.clear-btn{
+  background:#ddd;
+  color:#222;
+}
+.record{
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+  font-size:14px;
+}
+.record-actions{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
+.record-actions button{
+  margin:0;
+  padding:8px;
+  font-size:13px;
+}
+.edit-btn{
+  background:#eee;
+  color:#222;
+}
+.delete-btn{
+  background:#ffe0e0;
+  color:#b00020;
+}
+</style>
 </head>
 
 <body>
 <div class="container">
-  <h1>🌾 媽媽農業記帳 Pro</h1>
-  <p class="today" id="todayText"></p>
+  <h1>YUN Account</h1>
 
-  <div id="homePage" class="page active">
-    <div class="summary">
-      <div>本月收入：<span id="totalIncome">0</span> 元</div>
-      <div>本月支出：<span id="totalExpense">0</span> 元</div>
-      <div>本月剩餘：<span id="balance">0</span> 元</div>
-      <div class="note">工項紀錄只做紀錄，不列入支出</div>
-    </div>
-
-    <div class="menu">
-      <button onclick="showPage('incomePage')">💰 每週收入</button>
-      <button onclick="showPage('expensePage')">💸 每週支出</button>
-      <button onclick="showPage('workPage')">🌱 工項紀錄</button>
-      <button onclick="showPage('workerPage')">👥 工人管理</button>
-      <button onclick="showPage('reportPage')">📊 月報表</button>
-      <button onclick="showPage('searchPage')">🔍 明細查詢</button>
-      <button onclick="exportExcel()">📁 匯出 Excel</button>
-    </div>
+  <div class="month-row">
+    <button onclick="changeMonth(-1)">◀</button>
+    <div class="month" id="month"></div>
+    <button onclick="changeMonth(1)">▶</button>
   </div>
 
-  <div id="incomePage" class="page">
-    <button class="back" onclick="showPage('homePage')">← 回首頁</button>
-    <h2>💰 每週收入</h2>
-    <input type="date" id="incomeDate">
-    <input type="number" id="incomeAmount" placeholder="收入金額">
-    <input type="text" id="incomeNote" placeholder="備註">
-    <button onclick="addIncome()">新增收入</button>
-    <table><thead><tr><th>日期</th><th>金額</th><th>備註</th><th>刪除</th></tr></thead><tbody id="incomeTable"></tbody></table>
+  <div class="box">
+    <h3>本月花費比例</h3>
+    <div class="pie" id="pie"></div>
+    <div class="small">依照各分類已花金額顯示百分比</div>
+    <div class="legend" id="legend"></div>
   </div>
 
-  <div id="expensePage" class="page">
-    <button class="back" onclick="showPage('homePage')">← 回首頁</button>
-    <h2>💸 每週支出</h2>
-    <input type="date" id="expenseDate">
-    <select id="expenseCategory" onchange="toggleOtherExpense()">
-      <option>工資</option><option>工人伙食費</option><option>家人伙食費</option>
-      <option>貸款繳納</option><option>工作用品</option><option>其他</option>
-    </select>
-    <input type="text" id="otherExpenseName" placeholder="請輸入其他支出名稱" style="display:none;">
-    <input type="number" id="expenseAmount" placeholder="支出金額">
-    <input type="text" id="expenseNote" placeholder="備註">
-    <button onclick="addExpense()">新增支出</button>
-    <table><thead><tr><th>日期</th><th>分類</th><th>金額</th><th>備註</th><th>刪除</th></tr></thead><tbody id="expenseTable"></tbody></table>
-  </div>
+  <div id="list"></div>
 
-  <div id="workPage" class="page">
-    <button class="back" onclick="showPage('homePage')">← 回首頁</button>
-    <h2>🌱 工項紀錄</h2>
-    <input type="date" id="salaryDate">
-    <select id="workerName"></select>
-    <select id="workContent" onchange="toggleOtherWork()">
-      <option>採收</option><option>搬運</option><option>包裝</option><option>除草</option>
-      <option>噴藥</option><option>施肥</option><option>整地</option><option>其他</option>
-    </select>
-    <input type="text" id="otherWorkContent" placeholder="請輸入其他工作內容" style="display:none;">
-    <input type="number" id="salaryAmount" placeholder="今日薪水">
-    <input type="text" id="salaryNote" placeholder="備註">
-    <button onclick="addSalary()">新增工項紀錄</button>
-
-    <h3>本月工人工項</h3>
-    <div id="workerSalaryCards"></div>
-  </div>
-
-  <div id="workerPage" class="page">
-    <button class="back" onclick="showPage('homePage')">← 回首頁</button>
-    <h2>👥 工人管理</h2>
-    <input type="text" id="newWorkerName" placeholder="輸入新工人姓名">
-    <button onclick="addWorker()">新增工人</button>
-    <table><thead><tr><th>工人姓名</th><th>操作</th></tr></thead><tbody id="workerTable"></tbody></table>
-  </div>
-
-  <div id="reportPage" class="page">
-    <button class="back" onclick="showPage('homePage')">← 回首頁</button>
-    <h2>📊 月報表</h2>
-    <label>選擇月份</label>
-    <input type="month" id="monthPicker" onchange="showData()">
-    <div class="summary">
-      <div>收入：<span id="reportIncome">0</span> 元</div>
-      <div>支出：<span id="reportExpense">0</span> 元</div>
-      <div>剩餘：<span id="reportBalance">0</span> 元</div>
-    </div>
-    <h3>支出圓餅圖</h3>
-    <canvas id="expenseChart" width="300" height="300"></canvas>
-    <div id="chartLegend"></div>
-  </div>
-
-  <div id="searchPage" class="page">
-    <button class="back" onclick="showPage('homePage')">← 回首頁</button>
-    <h2>🔍 明細查詢</h2>
-    <input type="month" id="searchMonth">
-    <select id="searchType">
-      <option value="all">全部</option>
-      <option value="income">每週收入</option>
-      <option value="expense">每週支出</option>
-      <option value="salary">工項紀錄</option>
-    </select>
-    <button onclick="searchDetails()">查詢</button>
-    <div id="searchResult"></div>
-  </div>
-
+  <button class="export-btn" onclick="exportExcel()">📤 匯出 Excel</button>
+  <button class="clear-btn" onclick="clearMonth()">清除本月資料</button>
 </div>
 
-<script src="script.js"></script>
+<script>
+const categories=[
+  {name:"美睫創業基金",color:"#d32f2f"},
+  {name:"食物",color:"#2e7d32"},
+  {name:"生活用品",color:"#1565c0"},
+  {name:"娛樂",color:"#ef6c00"},
+  {name:"雜支",color:"#555555"}
+];
+
+let allData = JSON.parse(localStorage.getItem("yunAccountDataV2")) || {};
+let currentDate = new Date();
+
+function monthKey(){
+  return currentDate.getFullYear() + "-" + String(currentDate.getMonth()+1).padStart(2,"0");
+}
+
+function initMonth(){
+  const key = monthKey();
+
+  if(!allData[key]){
+    allData[key] = {};
+  }
+
+  categories.forEach(c=>{
+    if(!allData[key][c.name]){
+      allData[key][c.name] = {
+        budget:0,
+        records:[]
+      };
+    }
+  });
+}
+
+function data(){
+  return allData[monthKey()];
+}
+
+function save(){
+  localStorage.setItem("yunAccountDataV2", JSON.stringify(allData));
+}
+
+function spent(name){
+  return data()[name].records.reduce((sum,r)=>sum+Number(r.amount),0);
+}
+
+function balance(name){
+  return Number(data()[name].budget)-spent(name);
+}
+
+function render(){
+  initMonth();
+
+  document.getElementById("month").innerText = monthKey();
+
+  const list=document.getElementById("list");
+  list.innerHTML="";
+
+  categories.forEach(c=>{
+    const b=Number(data()[c.name].budget);
+    const s=spent(c.name);
+    const left=balance(c.name);
+    const percent=b>0 ? Math.max(0,left/b*100) : 0;
+
+    const card=document.createElement("div");
+    card.className="card";
+
+    card.innerHTML=`
+      <div class="card-title" onclick="toggle('${c.name}')">
+        <div>
+          <div class="name" style="color:${c.color}">${c.name}</div>
+          <div class="balance">剩餘 $${left.toLocaleString()}</div>
+          <div class="small">預算 $${b.toLocaleString()}｜已花 $${s.toLocaleString()}</div>
+        </div>
+        <div>▼</div>
+      </div>
+
+      <div class="progress">
+        <div class="bar" style="width:${percent}%;background:${c.color}"></div>
+      </div>
+
+      <div class="details" id="detail-${c.name}">
+        <label>預算金額</label>
+        <input type="number" value="${b}" onchange="setBudget('${c.name}',this.value)">
+
+        <label>購買日期</label>
+        <input type="date" id="date-${c.name}">
+
+        <label>項目</label>
+        <input type="text" id="item-${c.name}" placeholder="例如：早餐、全聯、材料">
+
+        <label>金額</label>
+        <input type="number" id="amount-${c.name}" placeholder="輸入金額">
+
+        <label>備註</label>
+        <input type="text" id="note-${c.name}" placeholder="可不填">
+
+        <button class="add-btn" onclick="addRecord('${c.name}')">新增紀錄</button>
+
+        <div style="margin-top:14px">
+          ${data()[c.name].records.map((r,index)=>`
+            <div class="record">
+              <b>${r.date}</b>｜${r.item}｜$${Number(r.amount).toLocaleString()}
+              <div class="small">${r.note || ""}</div>
+
+              <div class="record-actions">
+                <button class="edit-btn" onclick="editRecord('${c.name}',${index})">✏️ 編輯</button>
+                <button class="delete-btn" onclick="deleteRecord('${c.name}',${index})">🗑️ 刪除</button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+
+    list.appendChild(card);
+  });
+
+  renderPie();
+  save();
+}
+
+function toggle(name){
+  const el=document.getElementById("detail-"+name);
+  el.style.display=el.style.display==="block" ? "none" : "block";
+}
+
+function setBudget(name,value){
+  data()[name].budget=Number(value);
+  render();
+}
+
+function addRecord(name){
+  const date=document.getElementById("date-"+name).value;
+  const item=document.getElementById("item-"+name).value;
+  const amount=document.getElementById("amount-"+name).value;
+  const note=document.getElementById("note-"+name).value;
+
+  if(!date || !item || !amount){
+    alert("日期、項目、金額都要填喔！");
+    return;
+  }
+
+  data()[name].records.push({
+    date:date,
+    item:item,
+    amount:Number(amount),
+    note:note
+  });
+
+  render();
+}
+
+function editRecord(name,index){
+  const r = data()[name].records[index];
+
+  const newDate = prompt("修改日期：", r.date);
+  if(newDate === null) return;
+
+  const newItem = prompt("修改項目：", r.item);
+  if(newItem === null) return;
+
+  const newAmount = prompt("修改金額：", r.amount);
+  if(newAmount === null) return;
+
+  const newNote = prompt("修改備註：", r.note || "");
+  if(newNote === null) return;
+
+  if(!newDate || !newItem || !newAmount){
+    alert("日期、項目、金額都不能空白！");
+    return;
+  }
+
+  data()[name].records[index] = {
+    date:newDate,
+    item:newItem,
+    amount:Number(newAmount),
+    note:newNote
+  };
+
+  render();
+}
+
+function deleteRecord(name,index){
+  if(confirm("確定要刪除這筆紀錄嗎？")){
+    data()[name].records.splice(index,1);
+    render();
+  }
+}
+
+function renderPie(){
+  const total = categories.reduce((sum,c)=>sum+spent(c.name),0);
+  const pie = document.getElementById("pie");
+  const legend = document.getElementById("legend");
+
+  if(total <= 0){
+    pie.style.background = "#ddd";
+    legend.innerHTML = `<div class="small">目前還沒有花費紀錄</div>`;
+    return;
+  }
+
+  let start = 0;
+  let parts = [];
+  let legendHTML = "";
+
+  categories.forEach(c=>{
+    const value = spent(c.name);
+    const percentage = total > 0 ? value / total * 100 : 0;
+    const deg = value / total * 360;
+
+    if(value > 0){
+      parts.push(`${c.color} ${start}deg ${start+deg}deg`);
+      legendHTML += `
+        <div class="legend-item">
+          <span style="color:${c.color};font-weight:bold;">● ${c.name}</span>
+          <span>$${value.toLocaleString()}｜${percentage.toFixed(1)}%</span>
+        </div>
+      `;
+    }
+
+    start += deg;
+  });
+
+  pie.style.background = `conic-gradient(${parts.join(",")})`;
+  legend.innerHTML = legendHTML;
+}
+
+function changeMonth(num){
+  currentDate.setMonth(currentDate.getMonth()+num);
+  render();
+}
+
+function clearMonth(){
+  if(confirm("確定要清除本月資料嗎？這個動作不能復原。")){
+    delete allData[monthKey()];
+    render();
+  }
+}
+
+function exportExcel(){
+  const wb = XLSX.utils.book_new();
+  const key = monthKey();
+
+  categories.forEach(c=>{
+    let rows = [
+      ["月份","分類","日期","項目","金額","備註"]
+    ];
+
+    data()[c.name].records.forEach(r=>{
+      rows.push([
+        key,
+        c.name,
+        r.date,
+        r.item,
+        r.amount,
+        r.note || ""
+      ]);
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, c.name);
+  });
+
+  XLSX.writeFile(wb, `YUN_Account_${key}.xlsx`);
+}
+
+render();
+</script>
 </body>
 </html>
